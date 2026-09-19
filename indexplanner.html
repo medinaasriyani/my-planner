@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Executive Planner Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cream: '#FBF9F5',
+                        sand: '#F4EFE6',
+                        gold: '#C5A059',
+                        'gold-light': '#E6D5B8',
+                        'charcoal': '#23272A',
+                        'charcoal-muted': '#4F5660',
+                        'soft-border': '#EAE5D9'
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'serif'],
+                        sans: ['"Montserrat"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #FBF9F5;
+            color: #23272A;
+        }
+        .font-serif {
+            font-family: 'Cormorant Garamond', serif;
+        }
+        /* Custom scrollbar for elegant look */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FBF9F5;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D4AF37;
+            border-radius: 3px;
+        }
+        .editable-field:hover {
+            background-color: rgba(197, 160, 89, 0.08);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col antialiased selection:bg-gold/20 selection:text-charcoal">
+
+    <header class="border-b border-soft-border bg-cream/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div id="app-avatar-initial" class="w-10 h-10 rounded-full bg-charcoal text-gold flex items-center justify-center font-serif text-xl font-bold shadow-sm">
+                M
+            </div>
+            <div>
+                <div class="flex items-center space-x-2">
+                    <h1 id="app-title-display" onclick="makeEditable('app-title')" title="Click to edit planner title" class="font-serif text-2xl font-bold tracking-wide text-charcoal editable-field px-1">Maison de Plan</h1>
+                </div>
+                <p class="text-xs uppercase tracking-widest text-gold font-semibold pl-1">Executive Planner Suite</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            <div id="live-clock" class="hidden md:block text-xs uppercase tracking-wider text-charcoal-muted font-medium border-r border-soft-border pr-4">
+                Loading Date...
+            </div>
+            <button onclick="openExportModal()" class="flex items-center space-x-2 px-4 py-2 text-xs uppercase tracking-wider font-semibold border border-gold text-charcoal hover:bg-gold hover:text-white transition-all rounded-full shadow-sm">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                <span>Export Summary</span>
+            </button>
+            <div class="flex items-center space-x-2 pl-2 border-l border-soft-border">
+                <div id="user-badge" class="w-9 h-9 rounded-full border border-gold/50 bg-sand flex items-center justify-center text-charcoal font-serif font-bold text-sm shadow-sm">
+                    AS
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 overflow-y-auto">
+        
+        <!-- LEFT COLUMN: Monthly Overview & Pillars (Col Span 5) -->
+        <section class="lg:col-span-5 flex flex-col space-y-8">
+            
+            <div class="bg-white border border-soft-border p-6 rounded-2xl shadow-sm relative overflow-hidden">
+                <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-gold/10 rounded-full blur-xl pointer-events-none"></div>
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <span class="text-xs uppercase tracking-widest text-gold font-bold">Daily Inspiration</span>
+                        <div class="flex items-baseline space-x-2 mt-1">
+                            <h2 class="font-serif text-3xl text-charcoal font-bold">Carpe Diem,</h2>
+                            <h2 id="user-name-display" onclick="makeEditable('user-name')" title="Click to edit your name" class="font-serif text-3xl text-gold font-bold editable-field px-1 underline decoration-gold/30">Asriyani</h2>
+                        </div>
+                    </div>
+                    <button onclick="refreshMantra()" class="text-charcoal-muted hover:text-gold transition-colors p-1" title="New Mantra">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <p id="daily-mantra" class="text-sm text-charcoal-muted italic mb-4">
+                    "Excellence is not an act, but a habit. Curate your day with intention and grace."
+                </p>
+                <div class="pt-4 border-t border-soft-border flex items-center justify-between text-xs font-semibold text-charcoal">
+                    <span>MONTHLY PROGRESS</span>
+                    <span id="monthly-progress-text" class="text-gold font-bold">0% Completed</span>
+                </div>
+                <div class="w-full bg-sand h-2 rounded-full mt-2 overflow-hidden">
+                    <div id="monthly-progress-bar" class="bg-gold h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="bg-white border border-soft-border p-6 rounded-2xl shadow-sm">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 id="calendar-month-year" class="font-serif text-2xl font-bold text-charcoal">September 2026</h3>
+                    <div class="flex items-center space-x-1">
+                        <button onclick="changeMonth(-1)" class="p-2 rounded-lg hover:bg-sand text-charcoal transition-colors">
+                            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="resetToCurrentMonth()" class="px-3 py-1 text-xs uppercase tracking-wider font-semibold border border-soft-border rounded-lg hover:border-gold transition-all">Today</button>
+                        <button onclick="changeMonth(1)" class="p-2 rounded-lg hover:bg-sand text-charcoal transition-colors">
+                            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Days header -->
+                <div class="grid grid-cols-7 gap-1 text-center text-xs font-bold text-charcoal-muted uppercase tracking-wider mb-2">
+                    <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+                </div>
+
+                <!-- Calendar Grid -->
+                <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-sm">
+                    <!-- Dynamic days populated via JS -->
+                </div>
+            </div>
+
+            <div class="bg-white border border-soft-border p-6 rounded-2xl shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-serif text-xl font-bold text-charcoal">Monthly Pillars & Milestones</h3>
+                    <button onclick="openAddMilestoneModal()" class="text-xs uppercase tracking-wider font-bold text-gold hover:underline flex items-center space-x-1">
+                        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                        <span>Add Goal</span>
+                    </button>
+                </div>
+                <div id="milestones-container" class="space-y-3">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+        </section>
+
+        <!-- RIGHT COLUMN: Daily Planner Execution (Col Span 7) -->
+        <section class="lg:col-span-7 flex flex-col space-y-8">
+            
+            <div class="bg-white border border-soft-border p-5 rounded-2xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-xl bg-gold/10 text-gold flex items-center justify-center font-serif text-xl font-bold">
+                        <span id="selected-day-num">19</span>
+                    </div>
+                    <div>
+                        <h3 id="selected-day-title" class="font-serif text-xl font-bold text-charcoal">Saturday, Sep 19, 2026</h3>
+                        <p class="text-xs text-charcoal-muted uppercase tracking-wider">Daily Execution Hub</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <input type="date" id="date-picker" onchange="onDateChanged(this.value)" class="text-xs uppercase tracking-wider font-semibold border border-soft-border bg-sand px-3 py-2 rounded-xl text-charcoal focus:outline-none focus:border-gold cursor-pointer">
+                    <button onclick="setTodayDate()" class="px-3 py-2 text-xs uppercase tracking-wider font-semibold bg-charcoal text-cream rounded-xl hover:bg-gold transition-all">Today</button>
+                </div>
+            </div>
+
+            <div class="bg-white border border-soft-border p-6 rounded-2xl shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="target" class="w-5 h-5 text-gold"></i>
+                        <h3 class="font-serif text-xl font-bold text-charcoal">Top Priorities (The Big 3)</h3>
+                    </div>
+                    <span class="text-xs text-charcoal-muted uppercase tracking-wider">High Impact Focus</span>
+                </div>
+                <div id="priorities-container" class="space-y-3">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <div class="bg-white border border-soft-border p-6 rounded-2xl shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="clock" class="w-5 h-5 text-gold"></i>
+                        <h3 class="font-serif text-xl font-bold text-charcoal">Hourly Time Blocking</h3>
+                    </div>
+                    <button onclick="openAddTimeBlockModal()" class="text-xs uppercase tracking-wider font-bold text-gold hover:underline flex items-center space-x-1">
+                        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                        <span>Add Schedule</span>
+                    </button>
+                </div>
+                <div id="timeblocks-container" class="space-y-2 max-h-[380px] overflow-y-auto pr-2">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Notes -->
+                <div class="bg-white border border-soft-border p-6 rounded-2xl shadow-sm flex flex-col">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="font-serif text-lg font-bold text-charcoal">Executive Notes</h4>
+                        <i data-lucide="file-text" class="w-4 h-4 text-gold"></i>
+                    </div>
+                    <textarea id="daily-notes" oninput="saveDailyNotes(this.value)" placeholder="Jot down meeting takeaways, ideas, or reflections..." class="w-full flex-1 min-h-[120px] bg-sand/50 border border-soft-border rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-gold resize-none"></textarea>
+                </div>
+
+                <!-- Gratitude & Mindset -->
+                <div class="bg-white border border-soft-border p-6 rounded-2xl shadow-sm flex flex-col">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="font-serif text-lg font-bold text-charcoal">Daily Gratitude</h4>
+                        <i data-lucide="heart" class="w-4 h-4 text-gold"></i>
+                    </div>
+                    <textarea id="daily-gratitude" oninput="saveDailyGratitude(this.value)" placeholder="What are three things you appreciate today..." class="w-full flex-1 min-h-[120px] bg-sand/50 border border-soft-border rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-gold resize-none"></textarea>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Add Milestone / Goal Modal -->
+    <div id="milestone-modal" class="fixed inset-0 bg-charcoal/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white border border-soft-border w-full max-w-md rounded-2xl p-6 shadow-xl animate-in fade-in zoom-in duration-200">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-serif text-2xl font-bold text-charcoal">Add Monthly Goal</h3>
+                <button onclick="closeModal('milestone-modal')" class="text-charcoal-muted hover:text-charcoal">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="milestone-form" onsubmit="handleMilestoneSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs uppercase tracking-wider font-semibold text-charcoal-muted mb-1">Goal Title</label>
+                    <input type="text" id="milestone-title" required placeholder="e.g., Finalize Q3 Financial Review" class="w-full bg-sand/50 border border-soft-border rounded-xl px-4 py-2.5 text-sm text-charcoal focus:outline-none focus:border-gold">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-wider font-semibold text-charcoal-muted mb-1">Target Date / Tag</label>
+                    <input type="text" id="milestone-date" required placeholder="e.g., Sept 25, 2026" class="w-full bg-sand/50 border border-soft-border rounded-xl px-4 py-2.5 text-sm text-charcoal focus:outline-none focus:border-gold">
+                </div>
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" onclick="closeModal('milestone-modal')" class="px-4 py-2 text-xs uppercase tracking-wider font-semibold border border-soft-border rounded-xl hover:bg-sand transition-all">Cancel</button>
+                    <button type="submit" class="px-5 py-2 text-xs uppercase tracking-wider font-semibold bg-charcoal text-cream rounded-xl hover:bg-gold transition-all">Save Goal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Time Block Modal -->
+    <div id="timeblock-modal" class="fixed inset-0 bg-charcoal/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white border border-soft-border w-full max-w-md rounded-2xl p-6 shadow-xl animate-in fade-in zoom-in duration-200">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-serif text-2xl font-bold text-charcoal">Add Schedule Block</h3>
+                <button onclick="closeModal('timeblock-modal')" class="text-charcoal-muted hover:text-charcoal">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="timeblock-form" onsubmit="handleTimeBlockSubmit(event)" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider font-semibold text-charcoal-muted mb-1">Start Time</label>
+                        <input type="time" id="tb-start" required value="09:00" class="w-full bg-sand/50 border border-soft-border rounded-xl px-4 py-2.5 text-sm text-charcoal focus:outline-none focus:border-gold">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider font-semibold text-charcoal-muted mb-1">End Time</label>
+                        <input type="time" id="tb-end" required value="10:00" class="w-full bg-sand/50 border border-soft-border rounded-xl px-4 py-2.5 text-sm text-charcoal focus:outline-none focus:border-gold">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-wider font-semibold text-charcoal-muted mb-1">Activity / Task</label>
+                    <input type="text" id="tb-title" required placeholder="e.g., Executive Board Meeting" class="w-full bg-sand/50 border border-soft-border rounded-xl px-4 py-2.5 text-sm text-charcoal focus:outline-none focus:border-gold">
+                </div>
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" onclick="closeModal('timeblock-modal')" class="px-4 py-2 text-xs uppercase tracking-wider font-semibold border border-soft-border rounded-xl hover:bg-sand transition-all">Cancel</button>
+                    <button type="submit" class="px-5 py-2 text-xs uppercase tracking-wider font-semibold bg-charcoal text-cream rounded-xl hover:bg-gold transition-all">Add Block</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Export Summary Modal -->
+    <div id="export-modal" class="fixed inset-0 bg-charcoal/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white border border-soft-border w-full max-w-lg rounded-2xl p-6 shadow-xl animate-in fade-in zoom-in duration-200">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-serif text-2xl font-bold text-charcoal">Executive Summary Export</h3>
+                <button onclick="closeModal('export-modal')" class="text-charcoal-muted hover:text-charcoal">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <p class="text-xs text-charcoal-muted mb-4">Copy your daily schedule and priorities summary for reports or archiving.</p>
+            <textarea id="export-textarea" readonly class="w-full h-48 bg-sand/50 border border-soft-border rounded-xl p-3 text-xs font-mono text-charcoal focus:outline-none mb-4 resize-none"></textarea>
+            <div class="flex justify-end space-x-3">
+                <button type="button" onclick="closeModal('export-modal')" class="px-4 py-2 text-xs uppercase tracking-wider font-semibold border border-soft-border rounded-xl hover:bg-sand transition-all">Close</button>
+                <button type="button" onclick="copyExportText()" class="px-5 py-2 text-xs uppercase tracking-wider font-semibold bg-charcoal text-cream rounded-xl hover:bg-gold transition-all flex items-center space-x-2">
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                    <span>Copy Summary</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-charcoal text-cream px-5 py-3 rounded-xl shadow-2xl text-xs font-semibold tracking-wider uppercase transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center space-x-2">
+        <i data-lucide="check-circle" class="w-4 h-4 text-gold"></i>
+        <span id="toast-message">Action Successful</span>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Application State Date & Data keys
+        let currentDate = new Date(2026, 8, 19); // Sep 19, 2026 default current demo state
+        let viewingDateStr = formatDateKey(currentDate);
+
+        // Mantra collection
+        const mantras = [
+            "Excellence is not an act, but a habit. Curate your day with intention and grace.",
+            "Simplicity is the ultimate sophistication. Focus on what truly moves the needle.",
+            "Discipline is choosing between what you want now and what you want most.",
+            "Master your morning, elevate your afternoon, reflect upon your evening.",
+            "An executive mind thrives in structure, elegance, and calm focus."
+        ];
+
+        function refreshMantra() {
+            const randomMantra = mantras[Math.floor(Math.random() * mantras.length)];
+            document.getElementById('daily-mantra').innerText = `"${randomMantra}"`;
+            showToast('New daily inspiration loaded');
+        }
+
+        function formatDateKey(dateObj) {
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Load or initialize localStorage database structure
+        function getStorageData() {
+            let data = localStorage.getItem('maison_planner_data');
+            if (!data) {
+                data = {
+                    plannerTitle: "Maison de Plan",
+                    userName: "Asriyani",
+                    milestones: [
+                        { id: 1, title: "Quarterly Financial Strategy Review", date: "Sept 25, 2026", completed: false },
+                        { id: 2, title: "Launch Leadership Mentorship Program", date: "Sept 29, 2026", completed: true },
+                        { id: 3, title: "Keynote Presentation at Tech Summit", date: "Oct 05, 2026", completed: false }
+                    ],
+                    days: {}
+                };
+                localStorage.setItem('maison_planner_data', JSON.stringify(data));
+            } else {
+                data = JSON.parse(data);
+            }
+            return data;
+        }
+
+        function saveStorageData(data) {
+            localStorage.setItem('maison_planner_data', JSON.stringify(data));
+        }
+
+        function getDayData(dateStr) {
+            const data = getStorageData();
+            if (!data.days[dateStr]) {
+                data.days[dateStr] = {
+                    priorities: [
+                        { id: 1, text: "Review Q3 budget allocations with department leads", completed: false },
+                        { id: 2, text: "Finalize proposal for luxury brand partnership", completed: false },
+                        { id: 3, text: "30-minute mindfulness & strategic planning walk", completed: true }
+                    ],
+                    timeblocks: [
+                        { id: 1, start: "08:30", end: "09:15", title: "Executive Email & Correspondence Review" },
+                        { id: 2, start: "09:30", end: "11:00", title: "Strategy Deep Work: Q4 Roadmap" },
+                        { id: 3, start: "11:15", end: "12:30", title: "Client Consultation & Advisory Call" },
+                        { id: 4, start: "13:30", end: "15:00", title: "Team Sync & Progress Evaluations" },
+                        { id: 5, start: "15:30", end: "17:00", title: "Drafting Quarterly Executive Report" }
+                    ],
+                    notes: "",
+                    gratitude: ""
+                };
+                saveStorageData(data);
+            }
+            return data.days[dateStr];
+        }
+
+        // Inline Editable Fields Handler
+        function makeEditable(fieldKey) {
+            const data = getStorageData();
+            let currentVal = fieldKey === 'app-title' ? data.plannerTitle : data.userName;
+            const elementId = fieldKey === 'app-title' ? 'app-title-display' : 'user-name-display';
+            const el = document.getElementById(elementId);
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentVal;
+            input.className = 'bg-sand border border-gold rounded-lg px-2 py-0.5 font-serif font-bold text-charcoal focus:outline-none';
+            
+            input.onblur = function() {
+                saveEditableValue(fieldKey, input.value);
+            };
+            input.onkeydown = function(e) {
+                if (e.key === 'Enter') {
+                    input.blur();
+                }
+            };
+
+            el.replaceWith(input);
+            input.focus();
+            input.select();
+        }
+
+        function saveEditableValue(fieldKey, newVal) {
+            const data = getStorageData();
+            const trimmed = newVal.trim();
+            if (!trimmed) return;
+
+            if (fieldKey === 'app-title') {
+                data.plannerTitle = trimmed;
+                document.getElementById('page-title').innerText = `${trimmed} | Executive Planner`;
+            } else {
+                data.userName = trimmed;
+            }
+            saveStorageData(data);
+            renderMetadata();
+            showToast('Updated successfully');
+        }
+
+        function renderMetadata() {
+            const data = getStorageData();
+            
+            // Planner Title
+            const titleEl = document.createElement('h1');
+            titleEl.id = 'app-title-display';
+            titleEl.className = 'font-serif text-2xl font-bold tracking-wide text-charcoal editable-field px-1';
+            titleEl.innerText = data.plannerTitle;
+            titleEl.title = "Click to edit planner title";
+            titleEl.onclick = () => makeEditable('app-title');
+            
+            const oldTitleEl = document.getElementById('app-title-display');
+            if (oldTitleEl) oldTitleEl.replaceWith(titleEl);
+
+            document.getElementById('page-title').innerText = `${data.plannerTitle} | Executive Planner`;
+            document.getElementById('app-avatar-initial').innerText = data.plannerTitle.charAt(0).toUpperCase();
+
+            // User Name
+            const nameEl = document.createElement('h2');
+            nameEl.id = 'user-name-display';
+            nameEl.className = 'font-serif text-3xl text-gold font-bold editable-field px-1 underline decoration-gold/30';
+            nameEl.innerText = data.userName;
+            nameEl.title = "Click to edit your name";
+            nameEl.onclick = () => makeEditable('user-name');
+
+            const oldNameEl = document.getElementById('user-name-display');
+            if (oldNameEl) oldNameEl.replaceWith(nameEl);
+
+            // Initials badge
+            const initials = data.userName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('user-badge').innerText = initials || 'EX';
+        }
+
+        // Live Clock in Header
+        function updateClock() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            document.getElementById('live-clock').innerText = now.toLocaleDateString('en-US', options);
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Initialize dashboard UI
+        function initDashboard() {
+            renderMetadata();
+            renderHeaderDateInfo();
+            renderCalendar();
+            renderMilestones();
+            renderDailyView();
+        }
+
+        function renderHeaderDateInfo() {
+            const parts = currentDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' }).split(', ');
+            document.getElementById('selected-day-num').innerText = currentDate.getDate();
+            document.getElementById('selected-day-title').innerText = `${parts[0]}, ${parts[1]}`;
+            document.getElementById('date-picker').value = viewingDateStr;
+        }
+
+        // Calendar Month navigation state
+        let calendarYear = currentDate.getFullYear();
+        let calendarMonth = currentDate.getMonth();
+
+        function changeMonth(direction) {
+            calendarMonth += direction;
+            if (calendarMonth > 11) {
+                calendarMonth = 0;
+                calendarYear++;
+            } else if (calendarMonth < 0) {
+                calendarMonth = 11;
+                calendarYear--;
+            }
+            renderCalendar();
+        }
+
+        function resetToCurrentMonth() {
+            const now = new Date();
+            calendarYear = now.getFullYear();
+            calendarMonth = now.getMonth();
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            document.getElementById('calendar-month-year').innerText = `${monthNames[calendarMonth]} ${calendarYear}`;
+
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+
+            const firstDayIndex = new Date(calendarYear, calendarMonth, 1).getDay();
+            let startDay = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+            const totalDays = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+            const prevTotalDays = new Date(calendarYear, calendarMonth, 0).getDate();
+
+            // Previous month padding days
+            for (let i = startDay - 1; i >= 0; i--) {
+                const dayNum = prevTotalDays - i;
+                const cell = document.createElement('div');
+                cell.className = 'h-9 flex items-center justify-center text-charcoal-muted/40 text-xs font-medium cursor-default';
+                cell.innerText = dayNum;
+                grid.appendChild(cell);
+            }
+
+            // Current month days
+            const todayStr = formatDateKey(new Date());
+
+            for (let d = 1; d <= totalDays; d++) {
+                const thisDateObj = new Date(calendarYear, calendarMonth, d);
+                const thisDateStr = formatDateKey(thisDateObj);
+                const isSelected = thisDateStr === viewingDateStr;
+                const isToday = thisDateStr === todayStr;
+
+                const cell = document.createElement('button');
+                let cellClasses = 'h-9 w-9 mx-auto rounded-xl flex items-center justify-center text-xs font-semibold transition-all ';
+                
+                if (isSelected) {
+                    cellClasses += 'bg-charcoal text-cream shadow-md ring-2 ring-gold';
+                } else if (isToday) {
+                    cellClasses += 'border border-gold text-gold hover:bg-gold/10';
+                } else {
+                    cellClasses += 'text-charcoal hover:bg-sand';
+                }
+
+                cell.className = cellClasses;
+                cell.innerText = d;
+                cell.onclick = () => selectDate(thisDateObj);
+                grid.appendChild(cell);
+            }
+        }
+
+        function selectDate(dateObj) {
+            currentDate = dateObj;
+            viewingDateStr = formatDateKey(currentDate);
+            renderHeaderDateInfo();
+            renderCalendar();
+            renderDailyView();
+        }
+
+        function onDateChanged(val) {
+            if (!val) return;
+            const parts = val.split('-');
+            currentDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            viewingDateStr = val;
+            calendarYear = currentDate.getFullYear();
+            calendarMonth = currentDate.getMonth();
+            renderHeaderDateInfo();
+            renderCalendar();
+            renderDailyView();
+        }
+
+        function setTodayDate() {
+            selectDate(new Date());
+        }
+
+        // Render Milestones (Monthly Goals)
+        function renderMilestones() {
+            const data = getStorageData();
+            const container = document.getElementById('milestones-container');
+            container.innerHTML = '';
+
+            if (data.milestones.length === 0) {
+                container.innerHTML = '<p class="text-xs text-charcoal-muted italic py-2">No monthly goals established yet.</p>';
+                updateMonthlyProgress(0, 0);
+                return;
+            }
+
+            let completedCount = 0;
+            data.milestones.forEach((m) => {
+                if (m.completed) completedCount++;
+
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-3 rounded-xl bg-sand/40 border border-soft-border hover:border-gold/50 transition-all';
+                div.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <input type="checkbox" ${m.completed ? 'checked' : ''} onchange="toggleMilestone(${m.id})" class="w-4 h-4 accent-gold cursor-pointer rounded">
+                        <div>
+                            <p class="text-xs font-semibold ${m.completed ? 'line-through text-charcoal-muted' : 'text-charcoal'}">${m.title}</p>
+                            <span class="text-[10px] uppercase tracking-wider text-gold font-bold">${m.date}</span>
+                        </div>
+                    </div>
+                    <button onclick="deleteMilestone(${m.id})" class="text-charcoal-muted hover:text-red-500 transition-colors p-1">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+
+            updateMonthlyProgress(completedCount, data.milestones.length);
+            lucide.createIcons();
+        }
+
+        function updateMonthlyProgress(completed, total) {
+            const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
+            document.getElementById('monthly-progress-text').innerText = `${pct}% Completed`;
+            document.getElementById('monthly-progress-bar').style.width = `${pct}%`;
+        }
+
+        function toggleMilestone(id) {
+            const data = getStorageData();
+            const m = data.milestones.find(item => item.id === id);
+            if (m) {
+                m.completed = !m.completed;
+                saveStorageData(data);
+                renderMilestones();
+                showToast('Monthly goal updated');
+            }
+        }
+
+        function deleteMilestone(id) {
+            const data = getStorageData();
+            data.milestones = data.milestones.filter(item => item.id !== id);
+            saveStorageData(data);
+            renderMilestones();
+            showToast('Goal removed');
+        }
+
+        // Render Daily View (Priorities, Timeblocks, Notes, Gratitude)
+        function renderDailyView() {
+            const dayData = getDayData(viewingDateStr);
+
+            // Render Priorities
+            const pContainer = document.getElementById('priorities-container');
+            pContainer.innerHTML = '';
+            dayData.priorities.forEach((p, idx) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-3.5 rounded-xl bg-sand/40 border border-soft-border hover:border-gold/50 transition-all';
+                div.innerHTML = `
+                    <div class="flex items-center space-x-3 flex-1">
+                        <input type="checkbox" ${p.completed ? 'checked' : ''} onchange="togglePriority(${idx})" class="w-4 h-4 accent-gold cursor-pointer rounded">
+                        <input type="text" value="${p.text}" onblur="updatePriorityText(${idx}, this.value)" class="w-full bg-transparent text-xs font-medium ${p.completed ? 'line-through text-charcoal-muted' : 'text-charcoal'} focus:outline-none focus:border-b focus:border-gold">
+                    </div>
+                    <span class="text-[10px] uppercase tracking-wider text-gold font-bold ml-2">Priority 0${idx + 1}</span>
+                `;
+                pContainer.appendChild(div);
+            });
+
+            // Render Time Blocks
+            const tbContainer = document.getElementById('timeblocks-container');
+            tbContainer.innerHTML = '';
+            if (dayData.timeblocks.length === 0) {
+                tbContainer.innerHTML = '<p class="text-xs text-charcoal-muted italic py-4 text-center">No scheduled blocks for this day.</p>';
+            } else {
+                dayData.timeblocks.sort((a, b) => a.start.localeCompare(b.start));
+                dayData.timeblocks.forEach((tb) => {
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center justify-between p-3 rounded-xl bg-sand/30 border border-soft-border hover:border-gold/50 transition-all';
+                    div.innerHTML = `
+                        <div class="flex items-center space-x-4">
+                            <div class="text-xs font-bold text-gold font-mono whitespace-nowrap bg-gold/10 px-2 py-1 rounded-lg">
+                                ${tb.start} - ${tb.end}
+                            </div>
+                            <span class="text-xs font-semibold text-charcoal">${tb.title}</span>
+                        </div>
+                        <button onclick="deleteTimeBlock(${tb.id})" class="text-charcoal-muted hover:text-red-500 transition-colors p-1">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                    `;
+                    tbContainer.appendChild(div);
+                });
+            }
+
+            // Render Notes & Gratitude
+            document.getElementById('daily-notes').value = dayData.notes || '';
+            document.getElementById('daily-gratitude').value = dayData.gratitude || '';
+
+            lucide.createIcons();
+        }
+
+        function togglePriority(index) {
+            const data = getStorageData();
+            const dayData = data.days[viewingDateStr];
+            dayData.priorities[index].completed = !dayData.priorities[index].completed;
+            saveStorageData(data);
+            renderDailyView();
+            showToast('Priority status updated');
+        }
+
+        function updatePriorityText(index, val) {
+            const data = getStorageData();
+            const dayData = data.days[viewingDateStr];
+            dayData.priorities[index].text = val;
+            saveStorageData(data);
+        }
+
+        function saveDailyNotes(val) {
+            const data = getStorageData();
+            data.days[viewingDateStr].notes = val;
+            saveStorageData(data);
+        }
+
+        function saveDailyGratitude(val) {
+            const data = getStorageData();
+            data.days[viewingDateStr].gratitude = val;
+            saveStorageData(data);
+        }
+
+        function deleteTimeBlock(id) {
+            const data = getStorageData();
+            const dayData = data.days[viewingDateStr];
+            dayData.timeblocks = dayData.timeblocks.filter(item => item.id !== id);
+            saveStorageData(data);
+            renderDailyView();
+            showToast('Schedule block removed');
+        }
+
+        // Modal Handlers
+        function openAddMilestoneModal() {
+            document.getElementById('milestone-modal').classList.remove('hidden');
+        }
+
+        function openAddTimeBlockModal() {
+            document.getElementById('timeblock-modal').classList.remove('hidden');
+        }
+
+        function openExportModal() {
+            const data = getStorageData();
+            const dayData = data.days[viewingDateStr];
+            let summary = `=== ${data.plannerTitle.toUpperCase()} EXECUTIVE SUMMARY ===\n`;
+            summary += `Owner: ${data.userName}\n`;
+            summary += `Date: ${currentDate.toDateString()}\n\n`;
+            summary += `--- TOP PRIORITIES (THE BIG 3) ---\n`;
+            dayData.priorities.forEach((p, i) => {
+                summary += `${i + 1}. [${p.completed ? 'X' : ' '}] ${p.text}\n`;
+            });
+            summary += `\n--- TIME BLOCKED SCHEDULE ---\n`;
+            if (dayData.timeblocks.length === 0) {
+                summary += `No scheduled blocks.\n`;
+            } else {
+                dayData.timeblocks.forEach(tb => {
+                    summary += `${tb.start} - ${tb.end}: ${tb.title}\n`;
+                });
+            }
+            summary += `\n--- EXECUTIVE NOTES ---\n${dayData.notes || 'None recorded.'}\n`;
+            summary += `\n--- GRATITUDE & MINDSET ---\n${dayData.gratitude || 'None recorded.'}\n`;
+
+            document.getElementById('export-textarea').value = summary;
+            document.getElementById('export-modal').classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function handleMilestoneSubmit(e) {
+            e.preventDefault();
+            const title = document.getElementById('milestone-title').value;
+            const date = document.getElementById('milestone-date').value;
+
+            const data = getStorageData();
+            data.milestones.push({ id: Date.now(), title, date, completed: false });
+            saveStorageData(data);
+
+            document.getElementById('milestone-form').reset();
+            closeModal('milestone-modal');
+            renderMilestones();
+            showToast('Monthly goal successfully added');
+        }
+
+        function handleTimeBlockSubmit(e) {
+            e.preventDefault();
+            const start = document.getElementById('tb-start').value;
+            const end = document.getElementById('tb-end').value;
+            const title = document.getElementById('tb-title').value;
+
+            const data = getStorageData();
+            const dayData = getDayData(viewingDateStr);
+            dayData.timeblocks.push({ id: Date.now(), start, end, title });
+            saveStorageData(data);
+
+            document.getElementById('timeblock-form').reset();
+            closeModal('timeblock-modal');
+            renderDailyView();
+            showToast('Schedule block added');
+        }
+
+        function copyExportText() {
+            const textarea = document.getElementById('export-textarea');
+            textarea.select();
+            document.execCommand('copy');
+            showToast('Summary copied to clipboard');
+            closeModal('export-modal');
+        }
+
+        // Toast notification helper
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Initial render on load
+        window.onload = function() {
+            initDashboard();
+        }
+    </script>
+</body>
+</html>
